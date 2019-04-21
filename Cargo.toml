@@ -1,0 +1,9 @@
+[package]
+name = "fsd"
+version = "0.1.0"
+authors = ["knipferrc <knipferrc@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+walkdir = "2.2.7"
+clap = "2.33.0"
