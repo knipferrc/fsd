@@ -5,14 +5,19 @@ use std::path::Path;
 use std::process;
 use walkdir::WalkDir;
 
-fn delete_files(path: &Path, exts: Vec<&str>) -> std::io::Result<()> {
+fn delete_files(
+    path: &Path,
+    exts: Vec<&str>,
+    total_files_removed: &mut u32,
+) -> std::io::Result<()> {
     for entry in WalkDir::new(path).into_iter().filter_map(|e| e.ok()) {
         let extension = entry.path().extension();
 
         for ext in exts.iter() {
             let ex = Some(OsStr::new(ext));
             if ex == extension {
-                Some(fs::remove_file(entry.path()));
+                *total_files_removed += 1;
+                Some(fs::remove_file(entry.path()).expect("Error removing file!"));
             }
         }
     }
@@ -20,12 +25,20 @@ fn delete_files(path: &Path, exts: Vec<&str>) -> std::io::Result<()> {
     Ok(())
 }
 
+fn show_completion_output(total_files_removed: &mut u32) {
+    println!("Finished deleting files");
+    println!("A total of: {} files deleted", total_files_removed);
+}
+
 fn run(matches: ArgMatches) -> Result<(), String> {
     let directory = matches.value_of("dir").unwrap();
     let extensions: Vec<&str> = matches.values_of("ext").unwrap().collect();
+    let total_files_removed = &mut 0;
 
     let path = Path::new(directory);
-    Some(delete_files(path, extensions));
+    Some(delete_files(path, extensions, total_files_removed));
+
+    show_completion_output(total_files_removed);
 
     Ok(())
 }
