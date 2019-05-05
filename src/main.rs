@@ -5,21 +5,27 @@ use std::path::Path;
 use std::process;
 use walkdir::WalkDir;
 
-fn delete_files(path: &Path) -> std::io::Result<()> {
+fn delete_files(path: &Path, exts: Vec<&str>) -> std::io::Result<()> {
     for entry in WalkDir::new(path).into_iter().filter_map(|e| e.ok()) {
-        if entry.path().extension().and_then(OsStr::to_str) == Some("css") {
-            fs::remove_file(entry.path())?;
+        let extension = entry.path().extension();
+
+        for ext in exts.iter() {
+            let ex = Some(OsStr::new(ext));
+            if ex == extension {
+                Some(fs::remove_file(entry.path()));
+            }
         }
     }
-    
+
     Ok(())
 }
 
 fn run(matches: ArgMatches) -> Result<(), String> {
     let directory = matches.value_of("dir").unwrap();
+    let extensions: Vec<&str> = matches.values_of("ext").unwrap().collect();
 
     let path = Path::new(directory);
-    Some(delete_files(path));
+    Some(delete_files(path, extensions));
 
     Ok(())
 }
@@ -35,6 +41,15 @@ fn main() {
                 .long("dir")
                 .help("Directory to delete files in")
                 .required(true)
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("ext")
+                .short("e")
+                .long("ext")
+                .help("Extensions to delete from dir")
+                .required(true)
+                .multiple(true)
                 .takes_value(true),
         )
         .get_matches();
