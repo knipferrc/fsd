@@ -1,13 +1,14 @@
-mod file_deleter;
-
-use clap::{App, Arg, ArgMatches};
+use clap::{App, Arg, ArgGroup, ArgMatches};
 use std::path::Path;
-use crate::file_deleter::{FileDeleter};
 
-pub struct Matcher {}
+use crate::deleter::deleter::Deleter;
+
+pub struct Matcher {
+    matches: ArgMatches<'static>,
+}
 
 impl Matcher {
-    pub fn new() -> ArgMatches 'static {
+    pub fn new() -> Matcher {
         let matches = App::new("FSD")
             .version("1.0")
             .about("Trashes files within a directory recursivesly")
@@ -24,26 +25,43 @@ impl Matcher {
                 Arg::with_name("ext")
                     .short("e")
                     .long("ext")
-                    .help("Extensions to delete from dir")
-                    .required(true)
+                    .help("Extensions to delete from directory")
                     .multiple(true)
                     .takes_value(true),
             )
+            .arg(
+                Arg::with_name("fnames")
+                    .short("f")
+                    .long("fnames")
+                    .help("Filenames to delete from directory")
+                    .multiple(true)
+                    .takes_value(true),
+            )
+            .group(
+                ArgGroup::with_name("files")
+                    .args(&vec!["ext", "fnames"])
+                    .required(true),
+            )
             .get_matches();
 
-        return matches;
+        Matcher { matches }
     }
 
-    fn run(matches: ArgMatches) -> Result<(), String> {
-        let directory = matches.value_of("dir").unwrap();
-        let extensions: Vec<&str> = matches.values_of("ext").unwrap().collect();
+    pub fn run(&self) -> Result<(), String> {
+        let directory = self.matches.value_of("dir").unwrap();
+
+        if let Some(extensions) = Some(self.matches.values_of("ext").unwrap().collect()) {
+            println!("Worked");
+        }
+
+        let filenames: Vec<&str> = self.matches.values_of("fnames").unwrap().collect();
         let total_files_removed = &mut 0;
         let path = Path::new(directory);
 
-        let mut file_deleter = FileDeleter::new(path, extensions, total_files_removed);
+        let mut deleter = Deleter::new(path, extensions, filenames, total_files_removed);
 
-        file_deleter.delete_files();
-        file_deleter.show_completion_output();
+        deleter.delete_files();
+        deleter.show_results();
 
         Ok(())
     }

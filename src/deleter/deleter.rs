@@ -3,26 +3,29 @@ use std::fs;
 use std::path::Path;
 use walkdir::WalkDir;
 
-pub struct FileDeleter<'a> {
+pub struct Deleter<'a> {
     path: &'a Path,
     exts: Vec<&'a str>,
+    filenames: Vec<&'a str>,
     total_files_removed: &'a mut u32,
 }
 
-impl<'a> FileDeleter<'a> {
+impl<'a> Deleter<'a> {
     pub fn new(
         path: &'a Path,
         exts: Vec<&'a str>,
+        filenames: Vec<&'a str>,
         total_files_removed: &'a mut u32,
-    ) -> FileDeleter<'a> {
-        FileDeleter {
+    ) -> Deleter<'a> {
+        Deleter {
             path,
             exts,
+            filenames,
             total_files_removed,
         }
     }
 
-    pub fn show_completion_output(&self) {
+    pub fn show_results(&self) {
         if *self.total_files_removed > 0 {
             println!("Finished deleting files");
             println!("A total of: {} files deleted", self.total_files_removed);
@@ -35,11 +38,15 @@ impl<'a> FileDeleter<'a> {
         for entry in WalkDir::new(self.path).into_iter().filter_map(|e| e.ok()) {
             let extension = entry.path().extension();
 
-            for ext in self.exts.iter() {
-                let ex = Some(OsStr::new(ext));
-                if ex == extension {
-                    *self.total_files_removed += 1;
-                    fs::remove_file(entry.path()).expect("Error removing file!");
+            if !self.filenames.is_empty() {
+                println!("filename provided");
+            } else {
+                for ext in self.exts.iter() {
+                    let ex = Some(OsStr::new(ext));
+                    if ex == extension {
+                        *self.total_files_removed += 1;
+                        fs::remove_file(entry.path()).expect("Error removing file!");
+                    }
                 }
             }
         }

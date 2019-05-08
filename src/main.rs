@@ -1,12 +1,15 @@
-mod matcher;
 use std::process;
-use crate::matcher::{Matcher};
+
+use matcher::matcher::Matcher;
+
+mod deleter;
+mod matcher;
 
 fn main() {
-    let matches = Matcher::new();
+    let matcher = Matcher::new();
 
-    if let Err(e) = matches.run(matches) {
-            println!("Application error: {}", e);
-            process::exit(1);
-        }
+    if let Err(e) = matcher.run() {
+        println!("Application error: {}", e);
+        process::exit(1);
+    }
 }
