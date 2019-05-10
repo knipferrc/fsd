@@ -48,20 +48,28 @@ impl Matcher {
     }
 
     pub fn run(&self) -> Result<(), String> {
+        let mut deleter;
         let directory = self.matches.value_of("dir").unwrap();
 
-        if let Some(extensions) = Some(self.matches.values_of("ext").unwrap().collect()) {
-            println!("Worked");
-        }
-
-        let filenames: Vec<&str> = self.matches.values_of("fnames").unwrap().collect();
         let total_files_removed = &mut 0;
+        let second_total_files = &mut 0;
         let path = Path::new(directory);
 
-        let mut deleter = Deleter::new(path, extensions, filenames, total_files_removed);
+        if self.matches.is_present("ext") {
+            if let Some(extensions) = Some(self.matches.values_of("ext").unwrap().collect()) {
+                deleter = Deleter::new(path, extensions, Vec::new(), total_files_removed);
+                deleter.delete_files();
+                deleter.show_results();
+            }
+        }
 
-        deleter.delete_files();
-        deleter.show_results();
+        if self.matches.is_present("fnames") {
+            if let Some(filenames) = Some(self.matches.values_of("fnames").unwrap().collect()) {
+                deleter = Deleter::new(path, Vec::new(), filenames, second_total_files);
+                deleter.delete_files();
+                deleter.show_results();
+            }
+        }
 
         Ok(())
     }
