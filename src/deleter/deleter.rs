@@ -39,7 +39,13 @@ impl<'a> Deleter<'a> {
             let extension = entry.path().extension();
 
             if !self.filenames.is_empty() {
-                println!("filename provided");
+                for fname in self.filenames.iter() {
+                    let filename = OsStr::new(fname);
+                    if entry.file_name() == filename {
+                        *self.total_files_removed += 1;
+                        fs::remove_file(entry.path()).expect("Error removing file!");
+                    }
+                }
             } else {
                 for ext in self.exts.iter() {
                     let ex = Some(OsStr::new(ext));
