@@ -46,7 +46,9 @@ impl<'a> Deleter<'a> {
                         fs::remove_file(entry.path()).expect("Error removing file!");
                     }
                 }
-            } else {
+            }
+
+            if !self.exts.is_empty() {
                 for ext in self.exts.iter() {
                     let ex = Some(OsStr::new(ext));
                     if ex == extension {
