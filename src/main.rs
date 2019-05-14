@@ -1,6 +1,6 @@
 use std::process;
 
-use matcher::matcher::Matcher;
+use matcher::Matcher;
 
 mod deleter;
 mod matcher;

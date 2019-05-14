@@ -1,7 +1,7 @@
-use clap::{App, Arg, ArgGroup, ArgMatches};
+use clap::{App, Arg, ArgMatches};
 use std::path::Path;
 
-use crate::deleter::deleter::Deleter;
+use crate::deleter::Deleter;
 
 pub struct Matcher {
     matches: ArgMatches<'static>,
@@ -38,16 +38,19 @@ impl Matcher {
                     .takes_value(true),
             )
             .arg(
+                Arg::with_name("folders")
+                    .short("o")
+                    .long("folders")
+                    .help("Folders to delete from directory")
+                    .multiple(true)
+                    .takes_value(true),
+            )
+            .arg(
                 Arg::with_name("preset")
                     .short("p")
                     .long("preset")
                     .help("Presets available: 'node_modules'")
                     .takes_value(true),
-            )
-            .group(
-                ArgGroup::with_name("files")
-                    .args(&vec!["ext", "fnames", "preset"])
-                    .required(true),
             )
             .get_matches();
 
@@ -55,46 +58,59 @@ impl Matcher {
     }
 
     pub fn run(&self) -> Result<(), String> {
-        let mut deleter;
         let directory = self.matches.value_of("dir").unwrap();
-
+        let mut file_extensions = Vec::new();
+        let mut file_names = Vec::new();
+        let mut folders = Vec::new();
         let total_files_removed = &mut 0;
-        let second_total_files = &mut 0;
-        let third_total_files = &mut 0;
 
         let path = Path::new(directory);
 
         if self.matches.is_present("ext") {
             if let Some(extensions) = Some(self.matches.values_of("ext").unwrap().collect()) {
-                deleter = Deleter::new(path, extensions, Vec::new(), total_files_removed);
-                deleter.delete_files();
-                deleter.show_results();
+                file_extensions = extensions;
             }
         }
 
         if self.matches.is_present("fnames") {
             if let Some(filenames) = Some(self.matches.values_of("fnames").unwrap().collect()) {
-                deleter = Deleter::new(path, Vec::new(), filenames, second_total_files);
-                deleter.delete_files();
-                deleter.show_results();
+                file_names = filenames;
+            }
+        }
+
+        if self.matches.is_present("folders") {
+            if let Some(fldrs) = Some(self.matches.values_of("folders").unwrap().collect()) {
+                folders = fldrs;
             }
         }
 
         if self.matches.is_present("preset") {
             if let Some(preset) = Some(self.matches.value_of("preset").unwrap()) {
                 if preset == "node_modules" {
-                    let node_preset_extensions = vec![
-                        "markdown",
-                        "md",
-                        "mkd",
-                        "ts",
-                        "jst",
-                        "coffee",
-                        "tgz",
-                        "swp",
+                    file_extensions =
+                        vec!["markdown", "md", "mkd", "ts", "jst", "coffee", "tgz", "swp"];
+
+                    folders = vec![
+                        "__tests__",
+                        "test",
+                        "tests",
+                        "powered-test",
+                        "docs",
+                        "doc",
+                        ".idea",
+                        ".vscode",
+                        "website",
+                        "images",
+                        "assets",
+                        "example",
+                        "examples",
+                        "coverage",
+                        ".nyc_output",
+                        ".circleci",
+                        ".github",
                     ];
 
-                    let node_preset_filenames = vec![
+                    file_names = vec![
                         "Jenkinsfile",
                         "Makefile",
                         "Gulpfile.js",
@@ -163,14 +179,19 @@ impl Matcher {
                         "tsconfig.json",
                         "tslint.json",
                     ];
-                    
-                    deleter =
-                        Deleter::new(path, node_preset_extensions, node_preset_filenames, third_total_files);
-                    deleter.delete_files();
-                    deleter.show_results();
                 }
             }
         }
+
+        let mut deleter = Deleter::new(
+            path,
+            file_extensions,
+            file_names,
+            folders,
+            total_files_removed,
+        );
+        deleter.delete_files();
+        deleter.show_results();
 
         Ok(())
     }

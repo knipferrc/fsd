@@ -7,6 +7,7 @@ pub struct Deleter<'a> {
     path: &'a Path,
     exts: Vec<&'a str>,
     filenames: Vec<&'a str>,
+    folders: Vec<&'a str>,
     total_files_removed: &'a mut u32,
 }
 
@@ -15,12 +16,14 @@ impl<'a> Deleter<'a> {
         path: &'a Path,
         exts: Vec<&'a str>,
         filenames: Vec<&'a str>,
+        folders: Vec<&'a str>,
         total_files_removed: &'a mut u32,
     ) -> Deleter<'a> {
         Deleter {
             path,
             exts,
             filenames,
+            folders,
             total_files_removed,
         }
     }
@@ -37,6 +40,16 @@ impl<'a> Deleter<'a> {
     pub fn delete_files(&mut self) {
         for entry in WalkDir::new(self.path).into_iter().filter_map(|e| e.ok()) {
             let extension = entry.path().extension();
+
+            if !self.folders.is_empty() {
+                for folder in self.folders.iter() {
+                    let path_string = String::from(entry.path().to_string_lossy());
+                    let paths: Vec<&str> = path_string.split("/").collect();
+                    if paths[paths.len() - 1] == *folder {
+                        fs::remove_dir_all(entry.path()).expect("Error removing folder");
+                    }
+                }
+            }
 
             if !self.filenames.is_empty() {
                 for fname in self.filenames.iter() {
