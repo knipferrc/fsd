@@ -63,6 +63,7 @@ impl Matcher {
         let mut file_names = Vec::new();
         let mut folders = Vec::new();
         let total_files_removed = &mut 0;
+        let total_folders_removed = &mut 0;
 
         let path = Path::new(directory);
 
@@ -189,9 +190,12 @@ impl Matcher {
             file_names,
             folders,
             total_files_removed,
+            total_folders_removed
         );
+        deleter.calculate_size();
         deleter.delete_files();
         deleter.show_results();
+        deleter.calculate_size();
 
         Ok(())
     }

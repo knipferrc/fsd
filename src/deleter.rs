@@ -9,6 +9,7 @@ pub struct Deleter<'a> {
     filenames: Vec<&'a str>,
     folders: Vec<&'a str>,
     total_files_removed: &'a mut u32,
+    total_folders_removed: &'a mut u32,
 }
 
 impl<'a> Deleter<'a> {
@@ -18,6 +19,7 @@ impl<'a> Deleter<'a> {
         filenames: Vec<&'a str>,
         folders: Vec<&'a str>,
         total_files_removed: &'a mut u32,
+        total_folders_removed: &'a mut u32,
     ) -> Deleter<'a> {
         Deleter {
             path,
@@ -25,20 +27,36 @@ impl<'a> Deleter<'a> {
             filenames,
             folders,
             total_files_removed,
+            total_folders_removed
         }
+    }
+
+    pub fn calculate_size(&self) {
+        let total_size = WalkDir::new(self.path)
+            .min_depth(1)
+            .max_depth(100)
+            .into_iter()
+            .filter_map(|entry| entry.ok())
+            .filter_map(|entry| entry.metadata().ok())
+            .filter(|metadata| metadata.is_file())
+            .fold(0, |acc, m| acc + m.len());
+        
+        println!("Total size of folder is: {}", total_size);
     }
 
     pub fn show_results(&self) {
         if *self.total_files_removed > 0 {
-            println!("Finished deleting files");
+            println!("Finished!!");
+            println!("---------------------------");
             println!("A total of: {} files deleted", self.total_files_removed);
+            println!("A total of: {} folders deleted", self.total_folders_removed);
         } else {
             println!("No files found!");
         }
     }
 
     pub fn delete_files(&mut self) {
-        for entry in WalkDir::new(self.path).into_iter().filter_map(|e| e.ok()) {
+        for entry in WalkDir::new(self.path).min_depth(1).into_iter().filter_map(|e| e.ok()) {
             let extension = entry.path().extension();
 
             if !self.folders.is_empty() {
@@ -46,6 +64,7 @@ impl<'a> Deleter<'a> {
                     let path_string = String::from(entry.path().to_string_lossy());
                     let paths: Vec<&str> = path_string.split("/").collect();
                     if paths[paths.len() - 1] == *folder {
+                        *self.total_folders_removed += 1;
                         fs::remove_dir_all(entry.path()).expect("Error removing folder");
                     }
                 }
