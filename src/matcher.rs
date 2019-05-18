@@ -14,25 +14,25 @@ impl Matcher {
             .about("Trashes files within a directory recursivesly")
             .author("Tyler K.")
             .arg(
-                Arg::with_name("dir")
+                Arg::with_name("directory")
                     .short("d")
-                    .long("dir")
+                    .long("directory")
                     .help("Directory to delete files in")
                     .required(true)
                     .takes_value(true),
             )
             .arg(
-                Arg::with_name("ext")
+                Arg::with_name("extensions")
                     .short("e")
-                    .long("ext")
+                    .long("extensions")
                     .help("Extensions to delete from directory")
                     .multiple(true)
                     .takes_value(true),
             )
             .arg(
-                Arg::with_name("fnames")
+                Arg::with_name("filenames")
                     .short("f")
-                    .long("fnames")
+                    .long("filenames")
                     .help("Filenames to delete from directory")
                     .multiple(true)
                     .takes_value(true),
@@ -58,7 +58,7 @@ impl Matcher {
     }
 
     pub fn run(&self) -> Result<(), String> {
-        let directory = self.matches.value_of("dir").unwrap();
+        let directory = self.matches.value_of("directory").unwrap();
         let mut file_extensions = Vec::new();
         let mut file_names = Vec::new();
         let mut folders = Vec::new();
@@ -68,13 +68,13 @@ impl Matcher {
         let path = Path::new(directory);
 
         if self.matches.is_present("ext") {
-            if let Some(extensions) = Some(self.matches.values_of("ext").unwrap().collect()) {
+            if let Some(extensions) = Some(self.matches.values_of("extensions").unwrap().collect()) {
                 file_extensions = extensions;
             }
         }
 
         if self.matches.is_present("fnames") {
-            if let Some(filenames) = Some(self.matches.values_of("fnames").unwrap().collect()) {
+            if let Some(filenames) = Some(self.matches.values_of("filenames").unwrap().collect()) {
                 file_names = filenames;
             }
         }
