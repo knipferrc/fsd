@@ -27,7 +27,7 @@ impl<'a> Deleter<'a> {
             filenames,
             folders,
             total_files_removed,
-            total_folders_removed
+            total_folders_removed,
         }
     }
 
@@ -40,7 +40,7 @@ impl<'a> Deleter<'a> {
             .filter_map(|entry| entry.metadata().ok())
             .filter(|metadata| metadata.is_file())
             .fold(0, |acc, m| acc + m.len());
-        
+
         println!("Total size of folder is: {}", total_size);
     }
 
@@ -56,7 +56,11 @@ impl<'a> Deleter<'a> {
     }
 
     pub fn delete_files(&mut self) {
-        for entry in WalkDir::new(self.path).min_depth(1).into_iter().filter_map(|e| e.ok()) {
+        for entry in WalkDir::new(self.path)
+            .min_depth(1)
+            .into_iter()
+            .filter_map(|e| e.ok())
+        {
             let extension = entry.path().extension();
 
             if !self.folders.is_empty() {

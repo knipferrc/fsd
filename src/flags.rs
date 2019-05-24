@@ -1,64 +1,19 @@
-use clap::{App, Arg, ArgMatches};
+use clap::{ArgMatches};
 use std::path::Path;
 
 use crate::deleter::Deleter;
 
-pub struct Matcher {
-    matches: ArgMatches<'static>,
+pub struct Flags {
+    pub directory: String,
+    pub extensions: Vec<String>,
+    pub filenames: Vec<String>,
+    pub folders: Vec<String>,
+    pub preset: String
 }
 
-impl Matcher {
-    pub fn new() -> Matcher {
-        let matches = App::new("FSD")
-            .version("1.0")
-            .about("Trashes files within a directory recursivesly")
-            .author("Tyler K.")
-            .arg(
-                Arg::with_name("directory")
-                    .short("d")
-                    .long("directory")
-                    .help("Directory to delete files in")
-                    .required(true)
-                    .takes_value(true),
-            )
-            .arg(
-                Arg::with_name("extensions")
-                    .short("e")
-                    .long("extensions")
-                    .help("Extensions to delete from directory")
-                    .multiple(true)
-                    .takes_value(true),
-            )
-            .arg(
-                Arg::with_name("filenames")
-                    .short("f")
-                    .long("filenames")
-                    .help("Filenames to delete from directory")
-                    .multiple(true)
-                    .takes_value(true),
-            )
-            .arg(
-                Arg::with_name("folders")
-                    .short("o")
-                    .long("folders")
-                    .help("Folders to delete from directory")
-                    .multiple(true)
-                    .takes_value(true),
-            )
-            .arg(
-                Arg::with_name("preset")
-                    .short("p")
-                    .long("preset")
-                    .help("Presets available: 'node_modules'")
-                    .takes_value(true),
-            )
-            .get_matches();
-
-        Matcher { matches }
-    }
-
-    pub fn run(&self) -> Result<(), String> {
-        let directory = self.matches.value_of("directory").unwrap();
+impl Flags {
+    pub fn from_matches(matches: &ArgMatches) -> Result<(), String> {
+        let directory = matches.value_of("directory").unwrap();
         let mut file_extensions = Vec::new();
         let mut file_names = Vec::new();
         let mut folders = Vec::new();
@@ -67,26 +22,27 @@ impl Matcher {
 
         let path = Path::new(directory);
 
-        if self.matches.is_present("ext") {
-            if let Some(extensions) = Some(self.matches.values_of("extensions").unwrap().collect()) {
+        if matches.is_present("extensions") {
+            if let Some(extensions) = Some(matches.values_of("extensions").unwrap().collect())
+            {
                 file_extensions = extensions;
             }
         }
 
-        if self.matches.is_present("fnames") {
-            if let Some(filenames) = Some(self.matches.values_of("filenames").unwrap().collect()) {
+        if matches.is_present("filenames") {
+            if let Some(filenames) = Some(matches.values_of("filenames").unwrap().collect()) {
                 file_names = filenames;
             }
         }
 
-        if self.matches.is_present("folders") {
-            if let Some(fldrs) = Some(self.matches.values_of("folders").unwrap().collect()) {
+        if matches.is_present("folders") {
+            if let Some(fldrs) = Some(matches.values_of("folders").unwrap().collect()) {
                 folders = fldrs;
             }
         }
 
-        if self.matches.is_present("preset") {
-            if let Some(preset) = Some(self.matches.value_of("preset").unwrap()) {
+        if matches.is_present("preset") {
+            if let Some(preset) = Some(matches.value_of("preset").unwrap()) {
                 if preset == "node_modules" {
                     file_extensions =
                         vec!["markdown", "md", "mkd", "ts", "jst", "coffee", "tgz", "swp"];
@@ -190,7 +146,7 @@ impl Matcher {
             file_names,
             folders,
             total_files_removed,
-            total_folders_removed
+            total_folders_removed,
         );
         deleter.calculate_size();
         deleter.delete_files();

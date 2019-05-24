@@ -1,15 +1,11 @@
-use std::process;
-
-use matcher::Matcher;
-
 mod deleter;
-mod matcher;
+mod app;
+mod flags;
+
+use crate::flags::Flags;
 
 fn main() {
-    let matcher = Matcher::new();
+    let matches = app::build().get_matches();
 
-    if let Err(e) = matcher.run() {
-        println!("Application error: {}", e);
-        process::exit(1);
-    }
+    let _flags = Flags::from_matches(&matches);
 }
