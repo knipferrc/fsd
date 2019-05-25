@@ -1,4 +1,4 @@
-use clap::{ArgMatches};
+use clap::ArgMatches;
 use std::path::Path;
 
 use crate::deleter::Deleter;
@@ -8,7 +8,7 @@ pub struct Flags {
     pub extensions: Vec<String>,
     pub filenames: Vec<String>,
     pub folders: Vec<String>,
-    pub preset: String
+    pub preset: String,
 }
 
 impl Flags {
@@ -23,8 +23,7 @@ impl Flags {
         let path = Path::new(directory);
 
         if matches.is_present("extensions") {
-            if let Some(extensions) = Some(matches.values_of("extensions").unwrap().collect())
-            {
+            if let Some(extensions) = Some(matches.values_of("extensions").unwrap().collect()) {
                 file_extensions = extensions;
             }
         }

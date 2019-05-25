@@ -1,5 +1,5 @@
-mod deleter;
 mod app;
+mod deleter;
 mod flags;
 
 use crate::flags::Flags;
