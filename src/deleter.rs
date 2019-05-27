@@ -30,7 +30,7 @@ impl<'a> Deleter<'a> {
             total_folders_removed,
         }
     }
-
+    
     pub fn calculate_size(&self) {
         let total_size = WalkDir::new(self.path)
             .min_depth(1)
