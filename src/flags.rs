@@ -148,9 +148,12 @@ impl Flags {
             total_folders_removed,
         );
         deleter.calculate_size();
-        deleter.delete_files();
-        deleter.show_results();
-        deleter.calculate_size();
+
+        if deleter.prompt() {
+            deleter.delete_files();
+            deleter.show_results();
+            deleter.calculate_size();
+        }
 
         Ok(())
     }

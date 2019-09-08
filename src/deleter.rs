@@ -1,6 +1,7 @@
 use std::ffi::OsStr;
 use std::fs;
 use std::path::Path;
+use std::io;
 use walkdir::WalkDir;
 
 pub struct Deleter<'a> {
@@ -52,6 +53,20 @@ impl<'a> Deleter<'a> {
             println!("A total of: {} folders deleted", self.total_folders_removed);
         } else {
             println!("No files found!");
+        }
+    }
+
+    pub fn prompt(&self) -> bool {
+        let mut input = String::new();
+
+        println!("Are you sure you want to delete all these files? y/N");
+
+        io::stdin().read_line(&mut input).expect("Couldn't read line");  
+        
+        if input.trim() == "y" {
+            return true;
+        } else {
+            return false;
         }
     }
 
